@@ -1,4 +1,3 @@
-import glob
 import json
 import os
 import re
@@ -29,32 +28,28 @@ def load_cached_csv(csv_path: str):
     try:
         df = pd.read_csv(csv_path, index_col=0, parse_dates=True)
         if "Close" in df.columns:
-            return df["Close"].dropna()
+            s = df["Close"]
+        elif len(df.columns) == 1:
+            # Backward compatibility with earlier single-series cache files.
+            s = df.iloc[:, 0]
+        else:
+            return None
+
+        s.index = pd.to_datetime(s.index).normalize()
+        return pd.to_numeric(s, errors="coerce").dropna().sort_index()
     except Exception:
         return None
 
-    return None
-
-# Remove previous cached data files
-for f in glob.glob(os.path.join(DATA_DIR, "*.*")):
-    if os.path.isfile(f):
-        try:
-            os.remove(f)
-        except Exception:
-            pass
-
-
 # ===============================
-# 2. Dynamic Trading Calendar
+# 2. Locked Research Window
 # ===============================
 START_DATE = pd.Timestamp("2026-06-08")
 END_DATE = pd.Timestamp("2026-08-07")
+IPO_DATE = pd.Timestamp("2026-07-27")
 
-MASTER_DATES = pd.date_range(
-    start=START_DATE,
-    end=END_DATE,
-    freq="B"
-)
+# Pre-freeze runs must never create or include future observations.
+# After the August 7 close, EFFECTIVE_END_DATE resolves to END_DATE.
+EFFECTIVE_END_DATE = min(END_DATE, pd.Timestamp.today().normalize())
 
 
 # ===============================
@@ -66,10 +61,26 @@ MASTER_DATES = pd.date_range(
 # ===============================
 # 4. Market Data Acquisition
 # ===============================
+def _business_day_lag(last_date: pd.Timestamp, reference_date: pd.Timestamp) -> int:
+    """Approximate weekday lag between the latest observation and the allowed end date."""
+    last_date = pd.Timestamp(last_date).normalize()
+    reference_date = pd.Timestamp(reference_date).normalize()
+    if last_date >= reference_date:
+        return 0
+    return len(pd.bdate_range(last_date + pd.Timedelta(days=1), reference_date))
+
+
+def _us_freshness_tolerance() -> int:
+    """Allow one weekday of lag pre-freeze; require the freeze date after the window closes."""
+    today = pd.Timestamp.today().normalize()
+    return 0 if today > END_DATE else 1
+
+
 def fetch_us_stock_real(symbol: str) -> pd.Series:
-    """Fetch US daily stock prices using Sina Finance API with Yahoo Finance fallback."""
+    """Fetch US daily closes using Sina, switching to Yahoo when Sina is stale."""
 
     clean_symbol = symbol.replace(".US", "").strip().upper()
+    stale_sina = None
 
     # 1. Primary source: Sina Finance API
     try:
@@ -100,15 +111,28 @@ def fetch_us_stock_real(symbol: str) -> pd.Series:
 
                     df["Date"] = pd.to_datetime(df["Date"]).dt.normalize()
                     df.set_index("Date", inplace=True)
-
-                    s = df["Close"].dropna()
+                    s = df["Close"].dropna().sort_index()
 
                     if len(s) >= 20:
-                        pass
-                        return s
+                        latest = s.index.max()
+                        lag = _business_day_lag(latest, EFFECTIVE_END_DATE)
+                        tolerance = _us_freshness_tolerance()
+                        if lag <= tolerance:
+                            print(
+                                f"[SOURCE] {clean_symbol}: Sina Finance | "
+                                f"latest={latest.date()} | freshness_lag={lag}"
+                            )
+                            return s
 
-    except Exception:
-        pass
+                        stale_sina = s
+                        print(
+                            f"[WARNING] {clean_symbol}: Sina Finance is stale "
+                            f"(latest={latest.date()}, weekday_lag={lag}). "
+                            "Trying Yahoo Finance fallback."
+                        )
+
+    except Exception as e:
+        print(f"[WARNING] {clean_symbol}: Sina Finance request failed: {e}")
 
     # 2. Backup source: Yahoo Finance API
     try:
@@ -137,15 +161,34 @@ def fetch_us_stock_real(symbol: str) -> pd.Series:
             df.dropna(inplace=True)
             df["Date"] = pd.to_datetime(df["Date"]).dt.normalize()
             df.set_index("Date", inplace=True)
-
-            s = df["Close"].dropna()
+            s = df["Close"].dropna().sort_index()
 
             if len(s) >= 20:
-                pass
+                latest = s.index.max()
+                print(
+                    f"[SOURCE] {clean_symbol}: Yahoo Finance fallback | "
+                    f"latest={latest.date()}"
+                )
+
+                # If Yahoo unexpectedly returns an older series than stale Sina,
+                # use the fresher real series rather than silently regressing.
+                if stale_sina is not None and latest < stale_sina.index.max():
+                    print(
+                        f"[WARNING] {clean_symbol}: Yahoo fallback is older than "
+                        "the Sina response; using the fresher Sina observations."
+                    )
+                    return stale_sina
+
                 return s
 
-    except Exception:
-        pass
+    except Exception as e:
+        print(f"[WARNING] {clean_symbol}: Yahoo Finance request failed: {e}")
+
+    if stale_sina is not None:
+        raise RuntimeError(
+            f"US data for [{symbol}] is stale through {stale_sina.index.max().date()} "
+            "and Yahoo Finance fallback was unavailable."
+        )
 
     raise RuntimeError(
         f"Unable to fetch sufficient historical data for [{symbol}]."
@@ -239,12 +282,12 @@ def load_all_targets_data(targets: dict) -> dict:
 
             s = raw_s[
                 (raw_s.index >= START_DATE)
-                & (raw_s.index <= END_DATE)
+                & (raw_s.index <= EFFECTIVE_END_DATE)
             ]
-            s[s.index < pd.Timestamp("2026-07-27")] = np.nan
+            s = s[s.index >= IPO_DATE].copy()
 
             dfs[target_name] = s
-            s.dropna().to_csv(csv_path)
+            pd.DataFrame({"Close": s.dropna()}).to_csv(csv_path)
 
             print(
                 f"[{target_name}] Post-IPO market data loaded successfully."
@@ -286,22 +329,13 @@ def load_all_targets_data(targets: dict) -> dict:
         # Do not create artificial weekday dates.
         s = raw_s[
             (raw_s.index >= START_DATE)
-            & (raw_s.index <= END_DATE)
+            & (raw_s.index <= EFFECTIVE_END_DATE)
         ]
 
-        # Warn only for completed dates; future dates remain unavailable.
-        run_date = pd.Timestamp.today().normalize()
-        past_dates = MASTER_DATES[MASTER_DATES <= run_date]
-
-        # Warn only for missing values in returned trading data.
-        # Holidays are not treated as missing market data.
-        observed_dates = raw_s.index.intersection(past_dates)
-        if len(observed_dates) > 0:
-            missing_past = raw_s.loc[observed_dates].isna().sum()
-            if missing_past > 0:
-                print(
-                    f"[WARNING] {target_name}: {missing_past} missing values detected in returned market data."
-                )
+        # Preserve only observed exchange trading dates. No synthetic calendar,
+        # forward fill, backward fill, or interpolation is applied.
+        if s.index.has_duplicates:
+            s = s[~s.index.duplicated(keep="last")].sort_index()
 
         dfs[target_name] = s
         pd.DataFrame({"Close": s}).to_csv(csv_path)
@@ -311,22 +345,75 @@ def load_all_targets_data(targets: dict) -> dict:
 
     # Final safety check: prevent data beyond report end date
     for name, series in dfs.items():
-        if series.index.max() > END_DATE:
+        if not series.empty and series.index.max() > EFFECTIVE_END_DATE:
             raise ValueError(
-                f"{name} contains data beyond frozen date {END_DATE.date()}"
+                f"{name} contains data beyond allowed date {EFFECTIVE_END_DATE.date()}"
             )
 
     return dfs
 
 
 # ===============================
-# 6. Main Program: Chart Export
+# 6. Locked Analytical Definitions
+# ===============================
+def normalized_cumulative_return_from_first_valid(
+    series: pd.Series, start_date: pd.Timestamp
+) -> pd.Series:
+    """
+    Figure 1 rule: normalize to the first valid close on or after start_date.
+
+    NCR_t = (P_t / P_0 - 1) * 100
+    """
+    s = series.dropna().sort_index()
+    s = s[s.index >= start_date]
+    if s.empty:
+        return pd.Series(dtype=float, name=series.name)
+
+    base_price = float(s.iloc[0])
+    if base_price == 0:
+        raise ValueError("Baseline price cannot be zero.")
+
+    return ((s / base_price) - 1.0) * 100.0
+
+
+def normalized_cumulative_return_from_event(
+    series: pd.Series, event_date: pd.Timestamp
+) -> pd.Series:
+    """
+    Figure 2 rule: use the exact CXMT IPO date as the common 0% baseline.
+
+    No nearest-date substitution is permitted. If a security has no valid close
+    on the event date, the comparison is not generated for that security.
+    """
+    s = series.dropna().sort_index()
+    if event_date not in s.index:
+        raise ValueError(
+            f"Missing exact event-date close for {series.name or 'series'} on "
+            f"{event_date.date()}."
+        )
+
+    base_price = float(s.loc[event_date])
+    if base_price == 0:
+        raise ValueError("Event-date baseline price cannot be zero.")
+
+    post_event = s[s.index >= event_date]
+    return ((post_event / base_price) - 1.0) * 100.0
+
+
+def calculate_ma7(series: pd.Series) -> pd.Series:
+    """Calculate the 7-trading-observation moving average (MA7)."""
+    s = series.dropna().sort_index()
+    return s.rolling(window=7, min_periods=7).mean()
+
+
+# ===============================
+# 7. Main Program: Chart Export
 # ===============================
 if __name__ == "__main__":
     targets = {
         "sh688012": ("AMEC (688012.SH)", "A"),
         "000660": ("SK Hynix (000660.KS)", "KOREA"),
-        "005930": ("Samsung (005930.KS)", "KOREA"),
+        "005930": ("Samsung Electronics (005930.KS)", "KOREA"),
         "MU": ("Micron (MU.US)", "US"),
         "AAPL": ("Apple (AAPL.US)", "US"),
         "NVDA": ("NVIDIA (NVDA.US)", "US"),
@@ -334,40 +421,53 @@ if __name__ == "__main__":
     }
 
     dfs = load_all_targets_data(targets)
-    combined_df = pd.DataFrame(dfs)
 
-    print("\n================ Relative Performance Calculation (%) ================")
-    normalized_window = pd.DataFrame()
-    for col in combined_df.columns:
-        first_valid_idx = combined_df[col].first_valid_index()
-        if first_valid_idx is not None:
-            base_val = combined_df.loc[first_valid_idx, col]
-            normalized_window[col] = (combined_df[col] / base_val - 1) * 100
+    # Fail fast rather than silently generating partial research figures.
+    required_names = [target_name for target_name, _ in targets.values()]
+    missing_required = [
+        name for name in required_names
+        if name not in dfs or dfs[name].dropna().empty
+    ]
+    if missing_required:
+        raise RuntimeError(
+            "Required market series unavailable or empty: "
+            + ", ".join(missing_required)
+        )
 
-    ipo_date = pd.to_datetime("2026-07-27")
+    print("\n================ NCR Calculation (%) ================")
+    print(
+        "Figure 1 baseline: first valid close on/after 2026-06-08 | "
+        "Figure 2 baseline: 2026-07-27 = 0%"
+    )
 
-    # --- FIGURE 1: Upstream and Downstream Transmission ---
-    plt.figure(figsize=(10, 3.8), dpi=300)
-    chain_map = {
+    # ------------------------------------------------------------------
+    # FIGURE 1: Semiconductor Ecosystem Normalized Return Comparison
+    # Baseline: each security's first valid close on/after 2026-06-08.
+    # ------------------------------------------------------------------
+    figure1_map = {
         "AMEC (688012.SH)": {"color": "#1f77b4", "style": "-", "w": 2.2},
         "Apple (AAPL.US)": {"color": "#d62728", "style": "-", "w": 2.0},
         "NVIDIA (NVDA.US)": {"color": "#2ca02c", "style": "-", "w": 2.0},
     }
-    for col, cfg in chain_map.items():
-        if col in normalized_window:
-            plot_s = normalized_window[col].dropna()
-            if not plot_s.empty:
-                plt.plot(
-                    plot_s.index,
-                    plot_s.values,
-                    label=col,
-                    color=cfg["color"],
-                    linestyle=cfg["style"],
-                    linewidth=cfg["w"],
-                )
+
+    plt.figure(figsize=(10, 3.8), dpi=300)
+    for name, cfg in figure1_map.items():
+        if name not in dfs:
+            continue
+        ncr = normalized_cumulative_return_from_first_valid(dfs[name], START_DATE)
+        if ncr.empty:
+            continue
+        plt.plot(
+            ncr.index,
+            ncr.values,
+            label=name,
+            color=cfg["color"],
+            linestyle=cfg["style"],
+            linewidth=cfg["w"],
+        )
 
     plt.axvline(
-        ipo_date,
+        IPO_DATE,
         color="red",
         linestyle="--",
         linewidth=1.2,
@@ -376,87 +476,101 @@ if __name__ == "__main__":
     plt.gca().xaxis.set_major_locator(mdates.DayLocator(interval=7))
     plt.gca().xaxis.set_major_formatter(mdates.DateFormatter("%m-%d"))
     plt.xlabel("Trading Date (2026)", fontsize=9.5)
-    plt.ylabel("Cumulative Relative Return (%)", fontsize=9.5)
+    plt.ylabel("Normalized Cumulative Return (%)", fontsize=9.5)
     plt.axhline(0, color="gray", linestyle=":", linewidth=1)
     plt.grid(True, linestyle="--", alpha=0.5)
     plt.legend(loc="upper left", fontsize=9, frameon=True)
     plt.tight_layout()
-    chart1_path = os.path.join(
-        CHART_DIR, "upstream_downstream_chain.png"
-    )
+    chart1_path = os.path.join(CHART_DIR, "upstream_downstream_chain.png")
     plt.savefig(chart1_path)
     plt.close()
 
-    # --- FIGURE 2: Memory Sector Comparison ---
-    plt.figure(figsize=(10, 3.8), dpi=300)
-    midstream_map = {
+    # ------------------------------------------------------------------
+    # FIGURE 2: Event-Aligned Memory Sector Performance Comparison
+    # Common baseline: exact close on 2026-07-27 = 0% for all four names.
+    # Only post-event observations are plotted.
+    # ------------------------------------------------------------------
+    figure2_map = {
         "SK Hynix (000660.KS)": {"color": "#9467bd", "style": "--", "w": 2.2},
-        "Samsung (005930.KS)": {"color": "#8c564b", "style": "-.", "w": 2.0},
+        "Samsung Electronics (005930.KS)": {"color": "#8c564b", "style": "-.", "w": 2.0},
         "Micron (MU.US)": {"color": "#ff7f0e", "style": "-", "w": 2.0},
+        "CXMT (688825.SH - Target)": {"color": "#d62728", "style": "-", "w": 2.8},
     }
-    for col, cfg in midstream_map.items():
-        if col in normalized_window:
-            plot_s = normalized_window[col].dropna()
-            if not plot_s.empty:
-                plt.plot(
-                    plot_s.index,
-                    plot_s.values,
-                    label=col,
-                    color=cfg["color"],
-                    linestyle=cfg["style"],
-                    linewidth=cfg["w"],
-                )
 
-    cx_name = "CXMT (688825.SH - Target)"
-    if cx_name in normalized_window:
-        cx_s = normalized_window[cx_name].dropna()
-        if not cx_s.empty:
-            plt.plot(
-                cx_s.index,
-                cx_s,
-                label=cx_name,
-                color="#d62728",
-                linewidth=2.8,
-                marker="o",
-                markersize=5.5,
-            )
+    # Presentation rule: keep the real daily observations, but display only
+    # observed market dates on an equal-spaced categorical x-axis.
+    # No interpolation or smoothing is applied to Figure 2.
+    figure2_ncr = {}
+    observed_dates = set()
+    for name in figure2_map:
+        if name not in dfs:
+            raise RuntimeError(f"Figure 2 required series is unavailable: {name}")
+        event_ncr = normalized_cumulative_return_from_event(dfs[name], IPO_DATE)
+        figure2_ncr[name] = event_ncr
+        observed_dates.update(event_ncr.index.tolist())
 
+    observed_dates = sorted(observed_dates)
+    date_to_x = {date: pos for pos, date in enumerate(observed_dates)}
+
+    plt.figure(figsize=(10, 3.8), dpi=300)
+    for name, cfg in figure2_map.items():
+        event_ncr = figure2_ncr[name]
+        x_values = [date_to_x[date] for date in event_ncr.index]
+        plt.plot(
+            x_values,
+            event_ncr.values,
+            label=name,
+            color=cfg["color"],
+            linestyle=cfg["style"],
+            linewidth=cfg["w"],
+            marker="o",
+            markersize=5.5 if name.startswith("CXMT") else 4.0,
+        )
+
+    baseline_x = date_to_x[IPO_DATE]
     plt.axvline(
-        ipo_date,
+        baseline_x,
         color="red",
         linestyle="--",
         linewidth=1.2,
-        label="CXMT IPO Date (07-27)",
+        label="Common Baseline: CXMT IPO (07-27)",
     )
-    plt.gca().xaxis.set_major_locator(mdates.DayLocator(interval=7))
-    plt.gca().xaxis.set_major_formatter(mdates.DateFormatter("%m-%d"))
-    plt.xlabel("Trading Date (2026)", fontsize=9.5)
-    plt.ylabel("Cumulative Relative Return (%)", fontsize=9.5)
+
+    # Show only real observed dates; weekends/non-observed dates never appear.
+    max_ticks = 10
+    tick_step = max(1, int(np.ceil(len(observed_dates) / max_ticks)))
+    tick_positions = list(range(0, len(observed_dates), tick_step))
+    if tick_positions[-1] != len(observed_dates) - 1:
+        tick_positions.append(len(observed_dates) - 1)
+    tick_labels = [observed_dates[i].strftime("%m-%d") for i in tick_positions]
+    plt.xticks(tick_positions, tick_labels)
+    plt.xlabel("Observed Trading Date (2026)", fontsize=9.5)
+    plt.ylabel("Normalized Cumulative Return (%)", fontsize=9.5)
     plt.axhline(0, color="gray", linestyle=":", linewidth=1)
     plt.grid(True, linestyle="--", alpha=0.5)
-    plt.legend(loc="upper left", fontsize=8.8, frameon=True)
+    plt.legend(loc="best", fontsize=8.5, frameon=True)
     plt.tight_layout()
     chart2_path = os.path.join(CHART_DIR, "memory_sector_comparison.png")
     plt.savefig(chart2_path)
     plt.close()
 
-    # --- FIGURE 3: CXMT Price Trend ---
+    # ------------------------------------------------------------------
+    # FIGURE 3: CXMT Post-IPO Closing Price + full MA7
+    # MA7 appears only after seven valid CXMT trading observations.
+    # ------------------------------------------------------------------
+    cx_name = "CXMT (688825.SH - Target)"
     if cx_name in dfs and not dfs[cx_name].dropna().empty:
-        raw_cx = dfs[cx_name].dropna()
-        cx_df = pd.DataFrame({"Close": raw_cx})
-        cx_valid = cx_df["Close"].dropna()
-        cx_df["MA7"] = np.nan
-        cx_df.loc[cx_valid.index, "MA7"] = cx_valid.rolling(
-            window=7, min_periods=1
-        ).mean()
-        plot_cx = cx_df[cx_df.index >= pd.to_datetime("2026-07-27")].copy()
+        raw_cx = dfs[cx_name].dropna().sort_index()
+        plot_cx = raw_cx[raw_cx.index >= IPO_DATE]
+        cx_df = pd.DataFrame({"Close": plot_cx})
+        cx_df["MA7"] = calculate_ma7(cx_df["Close"])
 
         plt.figure(figsize=(9, 3.5), dpi=300)
-        date_labels = [d.strftime("%m-%d") for d in plot_cx.index]
+        date_labels = [d.strftime("%m-%d") for d in cx_df.index]
 
         plt.plot(
             date_labels,
-            plot_cx["Close"],
+            cx_df["Close"],
             marker="o",
             markersize=7,
             color="#2b5c8f",
@@ -465,15 +579,15 @@ if __name__ == "__main__":
         )
         plt.plot(
             date_labels,
-            plot_cx["MA7"],
+            cx_df["MA7"],
             color="#e06d53",
             linestyle="--",
-            label="7-Day Moving Avg (MA7)",
+            label="7-Trading-Day Moving Average (MA7)",
             linewidth=1.8,
         )
 
-        latest_date_str = plot_cx.index[-1].strftime("%Y-%m-%d")
-        latest_val = plot_cx["Close"].iloc[-1]
+        latest_date_str = cx_df.index[-1].strftime("%Y-%m-%d")
+        latest_val = float(cx_df["Close"].iloc[-1])
 
         plt.plot(
             date_labels[-1],
@@ -506,14 +620,29 @@ if __name__ == "__main__":
 
         plt.xlabel("Trading Date (2026)", fontsize=9.5)
         plt.ylabel("Stock Price (RMB)", fontsize=9.5)
-        plt.ylim(plot_cx["Close"].min() - 2.0, plot_cx["Close"].max() + 2.0)
+        price_min = float(cx_df["Close"].min())
+        price_max = float(cx_df["Close"].max())
+        plt.ylim(price_min - 2.0, price_max + 2.0)
         plt.legend(loc="upper left", fontsize=8.8, frameon=True)
         plt.grid(True, linestyle="--", alpha=0.5)
         plt.tight_layout()
-        chart3_path = os.path.join(
-            CHART_DIR, "cxmt_price_trend.png"
-        )
+        chart3_path = os.path.join(CHART_DIR, "cxmt_price_trend.png")
         plt.savefig(chart3_path)
         plt.close()
 
-    print("\nAnalysis completed. All available charts saved successfully.")
+        valid_ma7 = cx_df["MA7"].dropna()
+        if valid_ma7.empty:
+            print(
+                "[INFO] CXMT has fewer than seven valid post-IPO trading "
+                "observations; MA7 is not yet available."
+            )
+        else:
+            print(
+                f"[INFO] Latest MA7: {valid_ma7.iloc[-1]:.2f} RMB | "
+                f"Date: {valid_ma7.index[-1].date()}"
+            )
+
+    print(
+        "\nAnalysis completed. Final-ready methodology applied; "
+        "all available charts saved successfully."
+    )
