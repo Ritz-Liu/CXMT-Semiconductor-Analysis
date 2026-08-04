@@ -1,248 +1,297 @@
-# CXMT-Semiconductor-Analysis
+# CXMT Semiconductor Analysis
 
-## CXMT IPO Event Study and Semiconductor Supply Chain Analysis
+## Overview
 
-A quantitative semiconductor market analysis project examining CXMT
-(ChangXin Memory Technologies) IPO effects and global semiconductor
-supply chain responses.
+This repository contains an independent quantitative research workflow examining stock-price responses surrounding the IPO of ChangXin Memory Technologies (CXMT, 688825.SH).
 
-本项目围绕 CXMT（长鑫存储）IPO
-事件，使用真实市场数据和量化分析方法，研究半导体产业链不同环节企业的市场反应差异。
+The project uses an **event-aligned normalized return framework** to compare selected companies across the semiconductor ecosystem. It is designed as a transparent and reproducible research note rather than a conventional abnormal-return event study.
 
-------------------------------------------------------------------------
+**Current status:** Near-Final / Pre-Data-Freeze  
+**Event date:** 2026-07-27  
+**Research window:** 2026-06-08 to 2026-08-07
 
-# Research Objective \| 研究目标
+The final data refresh will be performed after the August 7 close. At that stage, only date-dependent values, chart endpoints, and the final archived report will be updated. The methodology is already locked.
 
-## English
+---
 
-This project examines how CXMT's IPO affected different semiconductor
-supply chain segments.
+## Research Scope
 
-The analysis focuses on:
+The project covers seven securities representing different analytical roles:
 
--   Semiconductor equipment suppliers
--   Memory semiconductor manufacturers
--   Downstream technology companies
+| Company | Ticker | Analytical Role |
+|---|---|---|
+| CXMT | 688825.SH | Focal IPO company; memory semiconductor |
+| AMEC | 688012.SH | Upstream semiconductor equipment |
+| SK hynix | 000660.KS | Global memory peer |
+| Samsung Electronics | 005930.KS | Global memory peer |
+| Micron Technology | MU | Global memory peer |
+| NVIDIA | NVDA | Semiconductor design / AI ecosystem |
+| Apple | AAPL | Downstream electronics demand |
 
-The objective is to understand how market expectations were transmitted
-across different positions in the semiconductor value chain.
+The sample is intentionally heterogeneous. The companies are grouped by ecosystem role and should not all be interpreted as semiconductor manufacturers.
 
-## 中文
+---
 
-本项目研究 CXMT 上市事件如何影响半导体产业链不同环节企业。
+## Methodology
 
-重点分析：
+### Normalized Cumulative Return (NCR)
 
--   半导体设备企业
--   存储芯片企业
--   下游科技企业
+The main comparative metric is:
 
-通过事件研究方法分析 CXMT IPO 后市场预期如何沿产业链传导。
+\[
+NCR_{i,t}
+=
+\left(
+\frac{P_{i,t}}{P_{i,0}} - 1
+\right)
+\times 100\%
+\]
 
-------------------------------------------------------------------------
+where:
 
-# Research Methodology \| 研究方法
+- `P(i,t)` is the closing price of security `i` on date `t`;
+- `P(i,0)` is the baseline closing price defined for the relevant figure.
 
-## Event Study Framework
+NCR is a **descriptive normalized-price measure**.
 
-This project applies an event-study framework around CXMT IPO listing.
+It is **not**:
 
-**Event Date:** July 27, 2026
+- abnormal return (AR);
+- cumulative abnormal return (CAR); or
+- a conventional market-model event-study estimate.
 
-**Observation Window:** June 8, 2026 -- August 7, 2026
+### Figure-Specific Baselines
 
-**Main Measurements:**
+**Figure 1 — Semiconductor Ecosystem Normalized Return Comparison**
 
--   Cumulative Relative Return (CRR)
--   Seven-Day Moving Average (MA7)
+Coverage:
 
-------------------------------------------------------------------------
+- AMEC
+- NVIDIA
+- Apple
 
-# Features \| 项目特点
+Baseline:
 
-## English
+- each security's first valid closing price on or after **2026-06-08**
 
--   Real market trading data analysis
--   Semiconductor supply chain comparison
--   Historical return comparison
--   CXMT IPO performance tracking
--   Global semiconductor company comparison
--   Event-study based market reaction analysis
--   Automated chart generation
--   Reproducible quantitative workflow
--   No artificial price generation
--   No future data generation
--   No artificial filling of missing trading data
+**Figure 2 — Event-Aligned Memory Sector Performance Comparison**
 
-## 中文
+Coverage:
 
--   使用真实市场行情数据
--   半导体产业链企业比较分析
--   历史收益表现比较
--   CXMT IPO 后市场表现跟踪
--   全球半导体企业对比分析
--   基于事件研究方法的市场反应分析
--   自动生成分析图表
--   可复现量化分析流程
--   不生成虚假价格
--   不生成未来行情数据
--   不人为填充缺失交易数据
+- CXMT
+- Micron
+- Samsung Electronics
+- SK hynix
 
-------------------------------------------------------------------------
+Baseline:
 
-# Data Policy \| 数据原则
+- common event date: **2026-07-27**
+- all four series are set to **0% NCR** on the event date
 
-## English
+**Figure 3 — CXMT Post-IPO Price Development**
 
-This project follows a strict real-data policy.
+Metric:
 
--   Missing trading dates are not filled artificially.
--   Future market data is never generated.
--   Non-trading days remain empty.
--   Different market schedules are respected.
+- CXMT daily closing price in RMB
+- 7-Trading-Day Moving Average (MA7)
 
-## 中文
+Figure 3 does not use NCR.
 
-本项目遵循严格的数据真实性原则。
+### 7-Trading-Day Moving Average
 
--   不人为补充不存在的交易数据
--   不生成未来行情数据
--   不使用模拟价格填补空缺
--   尊重不同交易市场时间安排
+\[
+MA7_t
+=
+\frac{1}{7}
+\sum_{k=0}^{6} P_{t-k}
+\]
 
-------------------------------------------------------------------------
+Locked Python implementation:
 
-# Research Coverage \| 研究范围
+```python
+rolling(window=7, min_periods=7)
+```
 
-## Upstream Semiconductor Equipment
+MA7 is calculated only after seven valid trading observations are available.
 
--   AMEC (688012.SH)
+---
 
-## Memory Semiconductor Companies
+## Current Pre-Freeze Figures
 
--   CXMT (688825.SH)
--   SK Hynix (000660.KS)
--   Samsung Electronics (005930.KS)
--   Micron Technology (MU.US)
+The charts below are generated from currently available observations and are **not yet the final August 7 data-freeze versions**.
 
-## Downstream Technology Companies
+### Figure 1 — Semiconductor Ecosystem Normalized Return Comparison
 
--   Apple (AAPL.US)
--   NVIDIA (NVDA.US)
+![Figure 1](output/charts/upstream_downstream_chain.png)
 
-------------------------------------------------------------------------
+### Figure 2 — Event-Aligned Memory Sector Performance Comparison
 
-# Project Structure \| 项目结构
+![Figure 2](output/charts/memory_sector_comparison.png)
 
-``` text
+### Figure 3 — CXMT Post-IPO Closing Price and MA7
+
+![Figure 3](output/charts/cxmt_price_trend.png)
+
+---
+
+## Market Data Sources
+
+| Market | Primary Source | Fallback |
+|---|---|---|
+| China A-share | Tencent Finance | Cached real CSV observations |
+| United States | Sina Finance | Yahoo Finance, then cached real CSV observations |
+| South Korea | Naver Stock | Cached real CSV observations |
+
+The U.S. workflow checks data freshness before accepting the primary Sina series when a newer fallback series may be required.
+
+Only real observed market data are used.
+
+---
+
+## Data Integrity Rules
+
+The workflow follows these rules:
+
+- no artificial price generation;
+- no future-data generation;
+- no forward filling or backward filling;
+- no manual insertion of unavailable prices;
+- no interpolation of missing price paths;
+- preserve actual exchange-specific trading dates;
+- use daily closing prices unless a separate OHLC source is explicitly documented;
+- allow cached CSV fallback only for previously retrieved real observations.
+
+For Figure 2, observed trading dates may be displayed as equally spaced categories for readability. This affects presentation only and does not create synthetic observations.
+
+---
+
+## Project Structure
+
+```text
 CXMT-Semiconductor-Analysis/
-
+│
 ├── data/
+│   └── cached market-data CSV files
+│
 ├── src/
 │   └── generate_report_charts.py
+│
 ├── output/
 │   └── charts/
+│       ├── upstream_downstream_chain.png
+│       ├── memory_sector_comparison.png
+│       └── cxmt_price_trend.png
+│
 ├── methodology/
 │   ├── research_methodology.md
 │   ├── mathematical_models.md
 │   └── variables_definition.md
+│
 ├── references/
 │   ├── academic_references.md
-│   └── data_sources.md
-├── report/
-│   └── CXMT_IPO_Event_Study_2026.pdf
+│   ├── data_sources.md
+│   └── industry_reports.md
+│
+├── .gitignore
+├── requirements.txt
 ├── README.md
 └── LICENSE
 ```
 
-------------------------------------------------------------------------
+The final archived research report will be added after the data freeze.
 
-# Installation \| 安装
+---
 
-## Requirements
+## Reproducibility
 
--   Python 3.10+
--   pip package manager
+Install the required Python packages:
 
-## Install Dependencies
-
-``` bash
+```bash
 pip install -r requirements.txt
 ```
 
-------------------------------------------------------------------------
+Run the chart-generation workflow from the repository root:
 
-# Usage \| 使用方法
-
-Generate research charts:
-
-``` bash
+```bash
 python src/generate_report_charts.py
 ```
 
-------------------------------------------------------------------------
+The script:
 
-# Repository Contents \| 仓库内容
+1. retrieves available market data;
+2. validates and cleans observations;
+3. preserves actual exchange trading dates;
+4. applies the locked figure-specific baseline rules;
+5. calculates NCR and MA7 where required;
+6. saves market-data CSV files to `data/`;
+7. exports charts to `output/charts/`.
 
-## Methodology
+---
 
-The methodology folder contains:
+## Research Limitations
 
--   Research framework
--   Mathematical models
--   Variable definitions
+This project is descriptive.
 
-## References
+It does not:
 
-The references folder contains:
+- estimate expected returns;
+- estimate market-model alpha or beta;
+- calculate AR or CAR;
+- establish that the CXMT IPO caused observed price movements;
+- infer institutional buying from price data alone;
+- provide technical trading signals; or
+- provide investment recommendations.
 
--   Academic methodology references
--   Market data sources
+Observed differences may reflect company-specific information, semiconductor-industry conditions, broader market sentiment, macroeconomic factors, and cross-market trading differences.
 
-## Report
+---
 
-The report folder contains:
+## Research Status
 
--   CXMT_IPO_Event_Study_2026.pdf
+### Locked Before Final Data Freeze
 
-------------------------------------------------------------------------
+- research identity;
+- event date;
+- research window;
+- NCR definition;
+- Figure 1 baseline;
+- Figure 2 common IPO baseline;
+- Figure 3 metric;
+- MA7 definition;
+- source mapping;
+- calendar handling;
+- data-integrity rules;
+- interpretation boundaries.
 
-# Disclaimer \| 免责声明
+### Final Refresh After August 7 Close
 
-This project is for research and educational purposes only.
+The final refresh will update only:
 
-本项目仅用于研究和学习用途。
+- date-dependent values;
+- final NCR endpoints;
+- final MA7 values;
+- Figures 1–3;
+- final research report;
+- final GitHub release; and
+- Zenodo archival information.
 
-This project does not provide investment advice or trading
-recommendations.
+Zenodo archival and DOI assignment will follow the final research freeze. The DOI will be added to the repository after the archived version is created.
 
-本项目不构成投资建议或交易推荐。
+---
 
-------------------------------------------------------------------------
+## Documentation
 
-# Citation \| 引用
+Detailed methodology and source documentation are available in:
 
-If you use this project in academic or research work, please cite:
+- [`methodology/research_methodology.md`](methodology/research_methodology.md)
+- [`methodology/mathematical_models.md`](methodology/mathematical_models.md)
+- [`methodology/variables_definition.md`](methodology/variables_definition.md)
+- [`references/data_sources.md`](references/data_sources.md)
+- [`references/industry_reports.md`](references/industry_reports.md)
+- [`references/academic_references.md`](references/academic_references.md)
 
-Liu, Ruize. (2026).
+---
 
-CXMT IPO Event Study: Semiconductor Supply Chain Transmission and Market
-Differentiation.
+## License
 
-GitHub Repository:
-
-https://github.com/Ritz-Liu/CXMT-Semiconductor-Analysis
-
-------------------------------------------------------------------------
-
-# License \| 许可证
-
-This project is licensed under the MIT License.
-
-------------------------------------------------------------------------
-
-# Author \| 作者
-
-Ritz-Liu
-
-Project creator and maintainer.
+This repository is released under the terms specified in the [`LICENSE`](LICENSE) file.
