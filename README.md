@@ -11,7 +11,7 @@ This repository contains an independent quantitative research workflow examining
 
 The project uses an **event-aligned normalized return framework** rather than a conventional abnormal-return event study.
 
-本项目采用**事件对齐标准化收益框架**，而不是传统的异常收益（abnormal return）事件研究模型。
+本项目采用**事件对齐标准化收益框架**，而不是传统的异常收益事件研究模型。
 
 **Current status / 当前状态:** Near-Final / Pre-Data-Freeze  
 **Event date / 事件日:** 2026-07-27  
@@ -45,23 +45,16 @@ The sample is intentionally heterogeneous and is organized by ecosystem role rat
 
 ### Normalized Cumulative Return (NCR) / 标准化累计收益率
 
-The main comparative metric is:
+The main comparative metric is / 主要比较指标为：
 
-主要比较指标为：
-
-$$
-NCR_{i,t}
-=
-\left(
-\frac{P_{i,t}}{P_{i,0}} - 1
-\right)
-\times 100\%
-$$
+```text
+NCR(i,t) = [P(i,t) / P(i,0) - 1] × 100%
+```
 
 where / 其中：
 
-- $P_{i,t}$: closing price of security $i$ on date $t$ / 股票 $i$ 在日期 $t$ 的收盘价
-- $P_{i,0}$: baseline closing price defined for the relevant figure / 对应图表所定义的基准收盘价
+- `P(i,t)`: closing price of security `i` on date `t` / 股票 `i` 在日期 `t` 的收盘价
+- `P(i,0)`: baseline closing price defined for the relevant figure / 对应图表所定义的基准收盘价
 
 NCR is a **descriptive normalized-price measure**. It is not abnormal return (AR), cumulative abnormal return (CAR), or a conventional market-model event-study estimate.
 
@@ -113,12 +106,15 @@ Figure 3 does not use NCR.
 
 ### 7-Trading-Day Moving Average (MA7) / 7 个交易日移动平均线
 
-$$
-MA7_t
-=
-\frac{1}{7}
-\sum_{k=0}^{6} P_{t-k}
-$$
+```text
+MA7(t) = [P(t) + P(t-1) + P(t-2) + ... + P(t-6)] / 7
+```
+
+Equivalent summation form / 等价求和形式：
+
+```text
+MA7(t) = (1/7) × Σ[k=0 to 6] P(t-k)
+```
 
 Locked Python implementation / 锁定的 Python 实现：
 
@@ -168,9 +164,7 @@ The U.S. workflow checks data freshness before accepting the Sina series when a 
 
 ## Data Integrity Rules / 数据完整性规则
 
-The workflow follows these rules:
-
-研究流程遵循以下规则：
+The workflow follows these rules / 研究流程遵循以下规则：
 
 - no artificial price generation / 不生成虚假价格
 - no future-data generation / 不生成未来数据
@@ -293,9 +287,7 @@ Observed differences may reflect company-specific information, semiconductor-ind
 
 ### Final Refresh After August 7 Close / 8 月 7 日收盘后最终刷新
 
-The final refresh will update only:
-
-最终刷新仅更新：
+The final refresh will update only / 最终刷新仅更新：
 
 - date-dependent values / 日期相关数值
 - final NCR endpoints / 最终 NCR 终点值
