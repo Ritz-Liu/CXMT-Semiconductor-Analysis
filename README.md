@@ -1,12 +1,60 @@
 # CXMT-Semiconductor-Analysis
 
-## 长鑫存储半导体产业链分析项目
+## CXMT IPO Event Study and Semiconductor Supply Chain Analysis
 
-A semiconductor stock analysis project focusing on CXMT (ChangXin Memory
-Technologies) and global semiconductor companies.
+A quantitative semiconductor market analysis project examining CXMT
+(ChangXin Memory Technologies) IPO effects and global semiconductor
+supply chain responses.
 
-本项目围绕
-CXMT（长鑫存储）以及全球半导体产业链企业进行真实市场数据分析与可视化。
+本项目围绕 CXMT（长鑫存储）IPO
+事件，使用真实市场数据和量化分析方法，研究半导体产业链不同环节企业的市场反应差异。
+
+------------------------------------------------------------------------
+
+# Research Objective \| 研究目标
+
+## English
+
+This project examines how CXMT's IPO affected different semiconductor
+supply chain segments.
+
+The analysis focuses on:
+
+-   Semiconductor equipment suppliers
+-   Memory semiconductor manufacturers
+-   Downstream technology companies
+
+The objective is to understand how market expectations were transmitted
+across different positions in the semiconductor value chain.
+
+## 中文
+
+本项目研究 CXMT 上市事件如何影响半导体产业链不同环节企业。
+
+重点分析：
+
+-   半导体设备企业
+-   存储芯片企业
+-   下游科技企业
+
+通过事件研究方法分析 CXMT IPO 后市场预期如何沿产业链传导。
+
+------------------------------------------------------------------------
+
+# Research Methodology \| 研究方法
+
+## Event Study Framework
+
+This project applies an event-study framework around CXMT IPO listing.
+
+**Event Date:** July 27, 2026
+
+**Observation Window:** June 8, 2026 -- August 7, 2026
+
+**Main Measurements:**
+
+-   Cumulative Relative Return (CRR)
+-   Seven-Day Moving Average (MA7)
 
 ------------------------------------------------------------------------
 
@@ -15,24 +63,29 @@ CXMT（长鑫存储）以及全球半导体产业链企业进行真实市场数�
 ## English
 
 -   Real market trading data analysis
--   Semiconductor industry chain comparison
+-   Semiconductor supply chain comparison
 -   Historical return comparison
 -   CXMT IPO performance tracking
 -   Global semiconductor company comparison
+-   Event-study based market reaction analysis
 -   Automated chart generation
+-   Reproducible quantitative workflow
 -   No artificial price generation
 -   No future data generation
--   No filling of missing trading data
+-   No artificial filling of missing trading data
 
 ## 中文
 
 -   使用真实市场行情数据
--   支持半导体产业链企业比较
--   支持 CXMT IPO 后表现跟踪
--   支持全球半导体企业对比分析
+-   半导体产业链企业比较分析
+-   历史收益表现比较
+-   CXMT IPO 后市场表现跟踪
+-   全球半导体企业对比分析
+-   基于事件研究方法的市场反应分析
 -   自动生成分析图表
+-   可复现量化分析流程
 -   不生成虚假价格
--   不生成未来数据
+-   不生成未来行情数据
 -   不人为填充缺失交易数据
 
 ------------------------------------------------------------------------
@@ -59,29 +112,45 @@ This project follows a strict real-data policy.
 
 ------------------------------------------------------------------------
 
+# Research Coverage \| 研究范围
+
+## Upstream Semiconductor Equipment
+
+-   AMEC (688012.SH)
+
+## Memory Semiconductor Companies
+
+-   CXMT (688825.SH)
+-   SK Hynix (000660.KS)
+-   Samsung Electronics (005930.KS)
+-   Micron Technology (MU.US)
+
+## Downstream Technology Companies
+
+-   Apple (AAPL.US)
+-   NVIDIA (NVDA.US)
+
+------------------------------------------------------------------------
+
 # Project Structure \| 项目结构
 
 ``` text
 CXMT-Semiconductor-Analysis/
 
 ├── data/
-│   ├── AMEC_688012_SH.csv
-│   ├── CXMT_688825_SH.csv
-│   ├── SK_HYNIX_000660_KS.csv
-│   ├── SAMSUNG_005930_KS.csv
-│   ├── MICRON_MU_US.csv
-│   ├── APPLE_AAPL_US.csv
-│   └── NVIDIA_NVDA_US.csv
-│
-├── output/
-│   └── charts/
-│       ├── upstream_downstream_chain.png
-│       ├── memory_sector_comparison.png
-│       └── cxmt_price_trend.png
-│
 ├── src/
 │   └── generate_report_charts.py
-│
+├── output/
+│   └── charts/
+├── methodology/
+│   ├── research_methodology.md
+│   ├── mathematical_models.md
+│   └── variables_definition.md
+├── references/
+│   ├── academic_references.md
+│   └── data_sources.md
+├── report/
+│   └── CXMT_IPO_Event_Study_2026.pdf
 ├── README.md
 └── LICENSE
 ```
@@ -90,12 +159,12 @@ CXMT-Semiconductor-Analysis/
 
 # Installation \| 安装
 
-## Requirements \| 环境要求
+## Requirements
 
 -   Python 3.10+
 -   pip package manager
 
-## Install Dependencies \| 安装依赖
+## Install Dependencies
 
 ``` bash
 pip install -r requirements.txt
@@ -105,9 +174,36 @@ pip install -r requirements.txt
 
 # Usage \| 使用方法
 
+Generate research charts:
+
 ``` bash
-python src/generate_report_charts_EN.py
+python src/generate_report_charts.py
 ```
+
+------------------------------------------------------------------------
+
+# Repository Contents \| 仓库内容
+
+## Methodology
+
+The methodology folder contains:
+
+-   Research framework
+-   Mathematical models
+-   Variable definitions
+
+## References
+
+The references folder contains:
+
+-   Academic methodology references
+-   Market data sources
+
+## Report
+
+The report folder contains:
+
+-   CXMT_IPO_Event_Study_2026.pdf
 
 ------------------------------------------------------------------------
 
@@ -117,22 +213,36 @@ This project is for research and educational purposes only.
 
 本项目仅用于研究和学习用途。
 
+This project does not provide investment advice or trading
+recommendations.
+
+本项目不构成投资建议或交易推荐。
+
+------------------------------------------------------------------------
+
+# Citation \| 引用
+
+If you use this project in academic or research work, please cite:
+
+Liu, Ruize. (2026).
+
+CXMT IPO Event Study: Semiconductor Supply Chain Transmission and Market
+Differentiation.
+
+GitHub Repository:
+
+https://github.com/Ritz-Liu/CXMT-Semiconductor-Analysis
+
 ------------------------------------------------------------------------
 
 # License \| 许可证
 
 This project is licensed under the MIT License.
 
-本项目采用 MIT 开源许可证。
-
 ------------------------------------------------------------------------
 
----
-
-# Author | 作者
+# Author \| 作者
 
 Ritz-Liu
 
 Project creator and maintainer.
-
-项目创建者与维护者。
