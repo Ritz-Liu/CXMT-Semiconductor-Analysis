@@ -13,13 +13,31 @@ The project uses an **event-aligned normalized return framework** rather than a 
 
 本项目采用**事件对齐标准化收益框架**，而不是传统的异常收益事件研究模型。
 
-**Current status / 当前状态:** Near-Final / Pre-Data-Freeze  
+**Current status / 当前状态:** Pre-Data-Freeze / Preparing `v0` Pre-release  
 **Event date / 事件日:** 2026-07-27  
 **Research window / 研究窗口:** 2026-06-08 to 2026-08-07
 
-The final data refresh will be performed after the August 7 close. At that stage, only date-dependent values, chart endpoints, and the final archived report will be updated. The methodology is already locked.
+The final data refresh will be performed after the August 7 close. At that stage, only date-dependent values, chart endpoints, the final research note, and archival information will be updated. The methodology is already locked.
 
-最终数据将在 8 月 7 日收盘后刷新。届时仅更新与日期相关的数值、图表终点和最终归档研报，不再修改研究方法定义。
+最终数据将在 8 月 7 日收盘后刷新。届时仅更新与日期相关的数值、图表终点、最终研报和归档信息，不再修改已锁定的研究方法。
+
+---
+
+## Current Research Note / 当前研报
+
+The repository currently includes a temporary pre-freeze research note based on observations available through **August 4, 2026**.
+
+当前仓库已包含一份基于截至 **2026 年 8 月 4 日**可用数据生成的冻结前临时研报。
+
+- [`CXMT_IPO_Research_Note_Temporary_V1_2026-08-04.pdf`](report/CXMT_IPO_Research_Note_Temporary_V1_2026-08-04.pdf)
+
+This document is intended for the `v0` test/pre-release and is **not** the final archived research version.
+
+该文档用于 `v0` 测试 / 预发布版本，**不是**最终归档研报。
+
+After the August 7 data freeze, the final report will supersede this temporary version.
+
+8 月 7 日数据冻结后，将发布最终研报并取代该临时版本。
 
 ---
 
@@ -208,15 +226,18 @@ CXMT-Semiconductor-Analysis/
 │   ├── data_sources.md
 │   └── industry_reports.md
 │
+├── report/
+│   └── CXMT_IPO_Research_Note_Temporary_V1_2026-08-04.pdf
+│
 ├── .gitignore
 ├── requirements.txt
 ├── README.md
 └── LICENSE
 ```
 
-The final archived research report will be added after the data freeze.
+The current `report/` directory contains the temporary pre-freeze research note. The final archived report will supersede it after the data freeze.
 
-最终归档研报将在数据冻结后加入仓库。
+当前 `report/` 目录包含冻结前临时研报。数据冻结后，最终归档研报将取代该版本。
 
 ---
 
@@ -268,22 +289,31 @@ Observed differences may reflect company-specific information, semiconductor-ind
 
 ---
 
-## Research Status / 研究状态
+## Release Status / 发布状态
 
-### Locked Before Final Data Freeze / 数据冻结前已锁定
+### `v0` Pre-release / `v0` 预发布
 
-- research identity / 研究定位
-- event date / 事件日
-- research window / 研究窗口
-- NCR definition / NCR 定义
-- Figure 1 baseline / 图 1 基准
-- Figure 2 common IPO baseline / 图 2 统一 IPO 基准
-- Figure 3 metric / 图 3 指标
-- MA7 definition / MA7 定义
-- source mapping / 数据源映射
-- calendar handling / 交易日处理
-- data-integrity rules / 数据完整性规则
-- interpretation boundaries / 解释边界
+The planned `v0` release is a **pre-freeze test release** based on currently available data and the Temporary Version 1 research note.
+
+计划中的 `v0` 是一个**冻结前测试版本**，基于当前可用数据和 Temporary Version 1 临时研报。
+
+It is intended to verify:
+
+- repository structure;
+- Python reproducibility;
+- chart rendering;
+- methodology documentation;
+- report packaging; and
+- GitHub Release workflow.
+
+该版本主要用于验证：
+
+- 仓库结构；
+- Python 可复现性；
+- 图表显示；
+- 方法文档；
+- 研报打包；
+- GitHub Release 流程。
 
 ### Final Refresh After August 7 Close / 8 月 7 日收盘后最终刷新
 
