@@ -218,9 +218,9 @@ The project does not estimate:
 - cumulative abnormal return (CAR); or
 - statistical event-study significance.
 
-## 8. Pre-Freeze Model Lock
+## 8. Final Model Status
 
-Before the final August 7 data refresh, the following items are fixed:
+The following items are fixed in Final V4:
 
 - NCR definition;
 - Figure 1 baseline rule;
@@ -231,4 +231,4 @@ Before the final August 7 data refresh, the following items are fixed:
 - actual-trading-date preservation; and
 - prohibition on fabricated, filled, or interpolated price observations.
 
-The final refresh may change only date-dependent values and chart endpoints, not these model definitions.
+The August 7 refresh changed only date-dependent values and chart endpoints. These model definitions were not changed. Any later methodological change requires a new research version and must not be applied retroactively to the Final V4 archive.

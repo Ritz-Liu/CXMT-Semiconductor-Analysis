@@ -45,7 +45,7 @@ The predefined research window is:
 - Start date: **2026-06-08**
 - End date: **2026-08-07**
 
-Before the final data freeze, only observations that are actually available as of the data-collection date are included. The workflow does not generate future observations.
+The final dataset is frozen through the August 7, 2026 market close. Only actually observed data inside the predefined window are included, and the workflow does not generate future observations.
 
 ### 4.3 Figure-specific baseline rules
 
@@ -195,16 +195,14 @@ The analysis is descriptive and has several limitations:
 
 Interpretation should therefore use cautious language such as **observed**, **suggests**, **may reflect**, and **is consistent with**, rather than claims of institutional buying, technical support, causal transmission, or investment recommendations.
 
-## 11. Pre-Freeze Synchronization Status
+## 11. Final Synchronization Status
 
-Method definitions, baseline rules, source mapping, calendar handling, and interpretation boundaries are locked before the final data refresh.
-
-After the August 7 close, the final workflow should update only:
+The August 7 refresh is complete. It updated only:
 
 - date-dependent values;
 - final NCR endpoints;
 - final MA7 values;
 - Figures 1–3; and
-- the final archived version and Zenodo DOI.
+- the Final V4 report and frozen replication materials.
 
-The underlying methodology should remain unchanged.
+Method definitions, baseline rules, source mapping, calendar handling, and interpretation boundaries remained unchanged. The GitHub materials are prepared for final release and Zenodo archival; the DOI will be added after reservation and final archive verification.

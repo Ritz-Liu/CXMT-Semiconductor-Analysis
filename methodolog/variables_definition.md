@@ -157,9 +157,9 @@ Avoid unsupported interpretations such as:
 - overweight;
 - buy / sell recommendation.
 
-## 8. Pre-Freeze Status
+## 8. Final Freeze Status
 
-The following definitions are locked before the final August 7 data refresh:
+The following definitions are locked in Final V4:
 
 - event date;
 - research window;
@@ -172,4 +172,4 @@ The following definitions are locked before the final August 7 data refresh:
 - calendar handling; and
 - data-integrity rules.
 
-Only date-dependent results and final chart values should change after the data freeze.
+The August 7 refresh updated only date-dependent results and final chart values. The definitions above remained unchanged. Data after 2026-08-07 are outside the frozen research window and must not be added to the Final V4 dataset.
