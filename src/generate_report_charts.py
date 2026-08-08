@@ -2,6 +2,7 @@ import json
 import os
 import re
 import xml.etree.ElementTree as ET
+
 import matplotlib.dates as mdates
 import matplotlib.pyplot as plt
 import numpy as np
@@ -47,8 +48,8 @@ START_DATE = pd.Timestamp("2026-06-08")
 END_DATE = pd.Timestamp("2026-08-07")
 IPO_DATE = pd.Timestamp("2026-07-27")
 
-# Pre-freeze runs must never create or include future observations.
-# After the August 7 close, EFFECTIVE_END_DATE resolves to END_DATE.
+# Cap every run at the research end date. Before that date, use only
+# observations available at run time.
 EFFECTIVE_END_DATE = min(END_DATE, pd.Timestamp.today().normalize())
 
 
@@ -71,7 +72,7 @@ def _business_day_lag(last_date: pd.Timestamp, reference_date: pd.Timestamp) -> 
 
 
 def _us_freshness_tolerance() -> int:
-    """Allow one weekday of lag pre-freeze; require the freeze date after the window closes."""
+    """Set the allowable lag relative to the research end date."""
     today = pd.Timestamp.today().normalize()
     return 0 if today > END_DATE else 1
 
@@ -84,7 +85,11 @@ def fetch_us_stock_real(symbol: str) -> pd.Series:
 
     # 1. Primary source: Sina Finance API
     try:
-        url = f"https://stock.finance.sina.com.cn/usstock/api/jsonp.php/var%20us_{clean_symbol}=/US_MinKService.getDailyK?symbol={clean_symbol}"
+        url = (
+            "https://stock.finance.sina.com.cn/usstock/api/jsonp.php/"
+            f"var%20us_{clean_symbol}=/US_MinKService.getDailyK?"
+            f"symbol={clean_symbol}"
+        )
 
         headers = {
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"
@@ -221,7 +226,10 @@ def fetch_tencent_ashare(code: str, min_length: int = 40) -> pd.Series:
 
 def fetch_naver_korea(code: str) -> pd.Series:
     """Fetch Korean stock daily price data using Naver Stock API."""
-    url = f"https://fchart.stock.naver.com/sise.nhn?symbol={code}&timeframe=day&count=100&requestType=0"
+    url = (
+        "https://fchart.stock.naver.com/sise.nhn?"
+        f"symbol={code}&timeframe=day&count=100&requestType=0"
+    )
     headers = {
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
     }
@@ -249,7 +257,8 @@ def fetch_naver_korea(code: str) -> pd.Series:
 def load_all_targets_data(targets: dict) -> dict:
     dfs = {}
     print(
-        f"Starting market data acquisition | Window: {START_DATE.strftime("%Y-%m-%d")} to {END_DATE.strftime("%Y-%m-%d")}"
+        f"Starting market data acquisition | Window: "
+        f"{START_DATE.strftime('%Y-%m-%d')} to {END_DATE.strftime('%Y-%m-%d')}"
     )
 
     for code, (target_name, source_type) in targets.items():
@@ -450,6 +459,8 @@ if __name__ == "__main__":
         "NVIDIA (NVDA.US)": {"color": "#2ca02c", "style": "-", "w": 2.0},
     }
 
+    # Preserve the original wide research-chart geometry. The report may scale
+    # this image proportionally, but must not alter its aspect ratio.
     plt.figure(figsize=(10, 3.8), dpi=300)
     for name, cfg in figure1_map.items():
         if name not in dfs:
@@ -643,6 +654,5 @@ if __name__ == "__main__":
             )
 
     print(
-        "\nAnalysis completed. Final-ready methodology applied; "
-        "all available charts saved successfully."
+        f"\nAnalysis complete. Charts saved to {CHART_DIR}."
     )
