@@ -12,7 +12,8 @@ This repository contains the frozen research materials for **CXMT IPO and Semico
 **Publication date / 发布日期:** 2026-08-08  
 **Event date / 事件日:** 2026-07-27  
 **Frozen research window / 冻结研究窗口:** 2026-06-08 to 2026-08-07  
-**Archive status / 归档状态:** Zenodo DOI pending / 等待 Zenodo DOI
+**Zenodo DOI / DOI:** [10.5281/zenodo.21847934](https://doi.org/10.5281/zenodo.21847934)  
+**Archive status / 归档状态:** DOI reserved; Zenodo publication pending / DOI 已预留；等待 Zenodo 正式发布
 
 ## Research Note / 研报
 
@@ -193,7 +194,8 @@ The script retrieves available market data when the documented interfaces are ac
 
 - `r0`: historical test/pre-release; retained only for provenance / 历史测试版本，仅作为过程记录保留
 - Final V4: current public research document and frozen replication materials / 当前公开研报与冻结复现材料
-- Zenodo: DOI pending; the DOI will be added after reservation and final archive verification / DOI 待生成，预留并完成归档核验后回填
+- `v4.0.1`: metadata-only patch adding the reserved Zenodo DOI; research data, methods, figures, findings, and AI disclosure are unchanged / 仅回填已预留 Zenodo DOI 的元数据补丁；研究数据、方法、图表、结论和 AI 披露均未改变
+- Zenodo: DOI `10.5281/zenodo.21847934` reserved; publication pending / DOI `10.5281/zenodo.21847934` 已预留；等待正式发布
 
 The final Zenodo package should contain only the Final V4 report and the matching frozen replication materials. It should not include `r0` artifacts, temporary reports, draft figures, or superseded document versions.
 
@@ -216,9 +218,11 @@ This project is descriptive. It does not estimate expected returns, a market mod
 
 ## Citation / 引用
 
-Until the Zenodo DOI is assigned, cite the Final V4 report by author, title, date, and repository URL. DOI metadata will be added after the archive is finalized.
+Recommended citation after the Zenodo record is published:
 
-在 Zenodo DOI 正式生成前，可使用作者、标题、日期和仓库地址引用 Final V4；完成归档后将补充 DOI 信息。
+Liu, R. (2026). *CXMT IPO and Semiconductor Ecosystem Response: An Event-Aligned Normalized Return Analysis* (Version 4.0.1) [Technical note]. Zenodo. https://doi.org/10.5281/zenodo.21847934
+
+Zenodo 记录正式发布后，建议使用上述格式引用；在正式发布前，该 DOI 仍处于预留状态。
 
 ## License / 许可证
 
