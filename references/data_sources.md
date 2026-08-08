@@ -4,7 +4,7 @@
 
 This file documents the market-data sources and data-handling rules used by the CXMT IPO research workflow.
 
-The repository follows the same source mapping and integrity rules as the near-final research note and the Python chart-generation workflow.
+The repository follows the same source mapping and integrity rules as the Final V4 research note and the frozen Python chart-generation workflow.
 
 ## 2. Equity Price Data
 
@@ -95,9 +95,7 @@ The predefined research window is:
 - Start date: **2026-06-08**
 - End date: **2026-08-07**
 
-Before the final data freeze, the workflow includes only observations that are actually available as of the data-collection date.
-
-No future observations are generated.
+The final dataset is frozen through the August 7, 2026 market close. Only observations inside the predefined window are used, and no future observations are generated.
 
 ## 4. Figure-Specific Data Usage
 
@@ -163,7 +161,7 @@ The Python workflow follows this sequence:
 6. Apply figure-specific baseline rules.
 7. Calculate NCR or MA7 as required.
 8. Generate research figures.
-9. Save real retrieved observations to local CSV files for reproducibility and endpoint fallback.
+9. Save real retrieved observations to the documented CSV files for reproducibility and eligible endpoint fallback.
 
 ## 6. Trading Calendar Handling
 
@@ -247,9 +245,9 @@ rolling(window=7, min_periods=7)
 
 MA7 is calculated only after seven complete valid trading observations are available.
 
-## 10. Pre-Freeze Status
+## 10. Final Freeze Status
 
-Before the final August 7 data refresh, the following items are locked:
+The August 7 data refresh is complete. The following items remain locked in Final V4:
 
 - source mapping;
 - research window;
@@ -261,4 +259,14 @@ Before the final August 7 data refresh, the following items are locked:
 - exchange-calendar handling; and
 - data-integrity policy.
 
-After the final data freeze, only date-dependent values, chart endpoints, and the final figures should change.
+The seven frozen data files are:
+
+- `data/AMEC_688012_SH.csv`
+- `data/APPLE_AAPL_US.csv`
+- `data/CXMT_688825_SH.csv`
+- `data/MICRON_MU_US.csv`
+- `data/NVIDIA_NVDA_US.csv`
+- `data/SAMSUNG_005930_KS.csv`
+- `data/SK_HYNIX_000660_KS.csv`
+
+The frozen files contain no observations after 2026-08-07. Subsequent market data are outside the scope of Final V4 and must not be appended to this archived research version.

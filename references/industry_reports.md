@@ -178,8 +178,6 @@ The price-data source mapping is documented separately in:
 
 `references/data_sources.md`
 
-## 8. Pre-Freeze Status
+## 8. Final Documentation Status
 
-The industry-reference categories are locked before the final data refresh.
-
-After the August 7 data freeze, these categories should not change unless a factual correction or a newly documented source is required for the final archived version.
+The industry-reference categories are frozen for Final V4. They may be changed only to correct a documented factual or bibliographic error. Any later expansion of the research scope should be issued as a new research version rather than silently modifying the Final V4 archive.

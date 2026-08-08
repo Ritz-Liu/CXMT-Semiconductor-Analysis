@@ -49,10 +49,10 @@ Market-price interfaces and data-processing rules are documented separately in:
 
 Keeping these categories separate avoids presenting industry reports or market-data interfaces as peer-reviewed academic research.
 
-## 4. Current Reference Scope
+## 4. Final Reference Scope
 
-The current near-final research note directly identifies MacKinlay (1997) as its academic methodological reference.
+The Final V4 research note directly identifies MacKinlay (1997) as its academic methodological reference.
 
-No additional peer-reviewed academic references are added in this file unless they are explicitly verified and incorporated into the final research version.
+No additional peer-reviewed references are listed because they were not incorporated into the frozen research note.
 
-This prevents the repository from listing academic sources that were not actually used in the research note.
+This prevents the repository from presenting unused sources as part of the study's academic foundation. Any later expansion of the literature review should be released as a new research version.
