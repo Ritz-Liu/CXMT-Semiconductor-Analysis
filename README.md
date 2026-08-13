@@ -12,8 +12,10 @@ This repository contains the frozen research materials for **CXMT IPO and Semico
 **Publication date / 发布日期:** 2026-08-08  
 **Event date / 事件日:** 2026-07-27  
 **Frozen research window / 冻结研究窗口:** 2026-06-08 to 2026-08-07  
-**Zenodo DOI / DOI:** [10.5281/zenodo.21847934](https://doi.org/10.5281/zenodo.21847934)  
-**Archive status / 归档状态:** DOI reserved; Zenodo publication pending / DOI 已预留；等待 Zenodo 正式发布
+**Zenodo DOI / DOI:** [10.5281/zenodo.21847934](https://doi.org/10.5281/zenodo.21847934)
+**Archive status / 归档状态:** Published and publicly archived on Zenodo / 已在 Zenodo 正式发布并公开归档
+**SSRN / SSRN:** [Abstract ID 7250200](https://ssrn.com/abstract=7250200)
+**SSRN status / SSRN 状态:** Approved and publicly available / 已通过审核并公开
 
 ## Research Note / 研报
 
@@ -218,11 +220,15 @@ This project is descriptive. It does not estimate expected returns, a market mod
 
 ## Citation / 引用
 
-Recommended citation after the Zenodo record is published:
+Recommended Zenodo citation:
 
 Liu, R. (2026). *CXMT IPO and Semiconductor Ecosystem Response: An Event-Aligned Normalized Return Analysis* (Version 4.0.1) [Technical note]. Zenodo. https://doi.org/10.5281/zenodo.21847934
 
-Zenodo 记录正式发布后，建议使用上述格式引用；在正式发布前，该 DOI 仍处于预留状态。
+SSRN working paper / preprint:
+
+Liu, R. (2026). *CXMT IPO and Semiconductor Ecosystem Response: An Event-Aligned Normalized Return Analysis*. SSRN Abstract ID 7250200. https://ssrn.com/abstract=7250200
+
+建议使用上述 Zenodo DOI 引用冻结归档版本；SSRN Abstract ID 7250200 对应公开 working-paper/preprint 记录。
 
 ## License / 许可证
 
